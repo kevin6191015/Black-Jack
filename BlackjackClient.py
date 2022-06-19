@@ -7,46 +7,57 @@ s = socket(AF_INET, SOCK_STREAM)
 player_number = 0
 total_player = 0
 
-def playerDisplay (player_num,total_num):
-    output = ""
-    if player_num == 1:
-        print ("Player 1(You) |" ,end="")
-    else:
-        print ("Player 1 |" ,end="")
-    for i in range ( 2 , total_num + 1) :
-        if i == player_num and i != total_num:
-            output += " Player " + str(i) + "(YOU) |"
-        elif i == player_num and i == total_num:
-            output += " Player " + str(i) + "(YOU)"
-        elif i == total_num and i != player_num:
-            output += " Player " + str(i) 
-        else :
-            output += " Player " + str(i) + "|"
-    print(output)
+bonbon = ""
 
-def playerdealerDisplay (player_num,total_num):
-    output = ""
-    print("Dealer | ",end="")
+
+def bonboncal(total_player):
+    temp=""
+    for i in range ( 0 , total_player):
+        temp+="----------------"
+    return temp
+
+def playerDisplay (player_num,total_num):
+    ouput = ""
     if player_num == 1:
-        print ("Player 1(You) |" ,end="")
+        temp = ("Player 1(You)").ljust(15, ' ')+"|"
+        print (temp ,end="")
     else:
-        print ("Player 1 |" ,end="")
+        temp = ("Player 1").ljust(15, ' ')+"|"
+        print (temp ,end="")
     for i in range ( 2 , total_num + 1) :
         if i == player_num and i != total_num:
-            output += " Player " + str(i) + "(YOU) |"
+            ouput += ("Player" + str(i) + "(YOU)").ljust(15, ' ')+"|"
         elif i == player_num and i == total_num:
-            output += " Player " + str(i) + "(YOU)"
-        elif i == total_num and i != player_num:
-            output += " Player " + str(i) 
+            ouput += ("Player" + str(i)+"(YOU)").ljust(15, ' ')+"|"
         else :
-            output += " Player " + str(i) + "|"
-    print(output)
+            ouput += ("Player" + str(i)).ljust(15, ' ') + "|"
+    print(ouput)
+
+def playerdealerDisplay( player_num , total_num ):
+    temp = ("Dealer").ljust(15, ' ')+"|"
+    print(temp,end="")
+    ouput = ""
+    if player_num == 1:
+        temp = ("Player 1(You)").ljust(15, ' ')+"|"
+        print (temp ,end="")
+    else:
+        temp = ("Player 1").ljust(15, ' ')+"|"
+        print (temp ,end="")
+    for i in range ( 2 , total_num + 1) :
+        if i == player_num and i != total_num:
+            ouput += ("Player" + str(i) + "(YOU)").ljust(15, ' ')+"|"
+        elif i == player_num and i == total_num:
+            ouput += ("Player" + str(i)+"(YOU)").ljust(15, ' ')+"|"
+        else :
+            ouput += ("Player" + str(i)).ljust(15, ' ')+ "|"
+    print(ouput)
 
 
 print ('------------------------------------------------')
 print ('Enter room number to enter the game or enter "quit" to leave')
-number = int(input())
-s.connect(('127.0.0.1', number))
+server_ip = input("Please input server ip : ")
+number = int(input("Please input room number : "))
+s.connect((server_ip, number))
 print ('------------------------------------------------')
 
 while 1:
@@ -65,7 +76,7 @@ while 1:
     elif data == 'getbet':
         print ('This round bet(>=10)?')
         Bet = int(input())
-        print ('------------------------------------------------')     
+        print (bonboncal(total_player+1))     
         while 1:
             if Bet >= 10:
                 s.send(str(Bet).encode())
@@ -74,14 +85,14 @@ while 1:
                 print ("Please enter again")
                 Bet = int(input('This round bet(>=10)?'))  
     elif data == 'startgame':
-        print ('------------------------------------------------')
+        bonbon=bonboncal(total_player)
+        print (bonbon)
         print ('Game Start')
     elif data == 'initbet':
         data = s.recv(1024).decode()
         print (data)
         data = s.recv(1024).decode()
         print (data)
-
         data = s.recv(1024).decode()
         print (data)
         print ('')

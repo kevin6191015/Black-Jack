@@ -19,7 +19,7 @@ WIN_OR_NOT = []
 
 
 
-
+bonbon = ""
 num = 0
 bet_round = 0
 game_round = 0
@@ -33,6 +33,13 @@ SOCKET_LIST = []
 PLAYER_LIST = []
 
 RECV_BUFFER = 4096
+
+def bonboncal(total_player):
+    temp=""
+    for i in range ( 0 , total_player):
+        temp+="----------------"
+    return temp
+
 
 def calculate(PLAYER_IN_GAME,card_point,true):
     PLAYER_POINT = []
@@ -146,11 +153,7 @@ def initialize(PLAYER_IN_GAME,PLAYER_NUM,PLAYER_BET,card_list,CURRENTBET_LIST):
         PLAYER_POINT.append(choosecard(card_list))
         PLAYER_IN_GAME.append(PLAYER_POINT)
 
-def printlist(wantprint):
-    put = ""
-    for item in wantprint:
-        put += str(item) +"\t"+"|"
-    return put
+
 
 def initCURRENTBET_LIST(total_player):
     CURRENTBET_LIST = []
@@ -165,10 +168,10 @@ def initPLAYER_BET(total_player):
     return PLAYER_BET
 
 
-def broadcast (server_socket, sock, message):
+def broadcast (server_socket, message):
     for socket in SOCKET_LIST:
         # send the message only to peer
-        if socket != server_socket and socket != sock :
+        if socket != server_socket :
             try :
                 socket.send(message)
             except :
@@ -177,50 +180,51 @@ def broadcast (server_socket, sock, message):
                 # broken socket, remove it
                 if socket in SOCKET_LIST:
                     SOCKET_LIST.remove(socket)
+    sleep(1)
 
+def printlist(wantprint):
+    put = ""
+    for item in wantprint:
+        put += str(item).ljust(15, ' ')+"|"
+    return put
 
 
 def playerDisplay (player_num,total_num):
     ouput = ""
     if player_num == 1:
-        print ("Player 1(You) |" ,end="")
+        temp = ("Player 1(You)").ljust(15, ' ')+"|"
+        print (temp ,end="")
     else:
-        print ("Player 1 |" ,end="")
+        temp = ("Player 1").ljust(15, ' ')+"|"
+        print (temp ,end="")
     for i in range ( 2 , total_num + 1) :
         if i == player_num and i != total_num:
-            ouput += " Player " + str(i) + "(YOU) |"
+            ouput += ("Player" + str(i) + "(YOU)").ljust(15, ' ')+"|"
         elif i == player_num and i == total_num:
-            ouput += " Player " + str(i) + "(YOU)"
-        elif i == total_num and i != player_num:
-            ouput += " Player " + str(i) 
+            ouput += ("Player" + str(i)+"(YOU)").ljust(15, ' ')+"|"
         else :
-            ouput += " Player " + str(i) + "|"
+            ouput += ("Player" + str(i)).ljust(15, ' ') + "|"
     print(ouput)
 
 def playerdealerDisplay( player_num , total_num ):
-    print("Dealer | ",end="")
+    temp = ("Dealer").ljust(15, ' ')+"|"
+    print(temp,end="")
     ouput = ""
     if player_num == 1:
-        print ("Player 1(You) |" ,end="")
+        temp = ("Player 1(You)").ljust(15, ' ')+"|"
+        print (temp ,end="")
     else:
-        print ("Player 1 |" ,end="")
+        temp = ("Player 1").ljust(15, ' ')+"|"
+        print (temp ,end="")
     for i in range ( 2 , total_num + 1) :
         if i == player_num and i != total_num:
-            ouput += " Player " + str(i) + "(YOU) |"
+            ouput += ("Player" + str(i) + "(YOU)").ljust(15, ' ')+"|"
         elif i == player_num and i == total_num:
-            ouput += " Player " + str(i) + "(YOU)"
-        elif i == total_num and i != player_num:
-            ouput += " Player " + str(i) 
+            ouput += ("Player" + str(i)+"(YOU)").ljust(15, ' ')+"|"
         else :
-            ouput += " Player " + str(i) + "|"
+            ouput += ("Player" + str(i)).ljust(15, ' ')+ "|"
     print(ouput)
 
-def betString(list) :
-    output=""
-    for i in list :
-        output+="  "+str(i)+"  ";
-    print(output)
-    return output
 
 def initialize(PLAYER_IN_GAME,PLAYER_NUM,PLAYER_BET,card_list,CURRENTBET_LIST):
     card_list = [4,4,4,4,4,4,4,4,4,4,4,4,4]
@@ -239,7 +243,6 @@ def choosecard(cardlist):
         cardlist[selectcard] -= 1
         return selectcard
 
-
 print ('------------------------------------------------')
 print ('Enter "begin" to create room or enter "quit" to leave')
 
@@ -253,17 +256,22 @@ while(1):
     else :
         print ('please enter again')
 
+IP=input("Your IP :")
+
 port_num = random.randint(5000,6000)
 
 print ('Room number:', port_num)
 
 server_socket = socket(AF_INET, SOCK_STREAM)
 server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-server_socket.bind(('127.0.0.1', port_num))
+
+server_socket.bind((IP, port_num))
 server_socket.listen(10)
 PLAYER_LIST.append(server_socket.getsockname())
 SOCKET_LIST.append(server_socket)
+
 print ('wait for other players....')
+bonbon=bonboncal(2)
 
 while 1:
     ready_to_read,ready_to_write,in_error = select.select(SOCKET_LIST,[],[],0)
@@ -276,23 +284,23 @@ while 1:
             sleep(1)
             sockfd.send(str(len(PLAYER_LIST)).encode())
             sleep(1)
-            broadcast(server_socket,sock,str("waitforplayer").encode())
-            sleep(1)
-            broadcast(server_socket,sock,str(len(PLAYER_LIST)).encode())
+            broadcast(server_socket,str("waitforplayer").encode())
+            broadcast(server_socket,str(len(PLAYER_LIST)).encode())
             total_player = len(PLAYER_LIST)
-            print ('------------------------------------------------')
+            print (bonbon)
             playerDisplay(player_num,total_player)
-            
             while(1):
                 choose = str(input('Enter "start" to start the game , Enter "wait" to wait for other player\n'))
                 if choose == 'start':
                     PLAYER_BET=initPLAYER_BET(total_player)
                     game_start = 1
                     bet_round = 1
-                    broadcast(server_socket,sock,str("startgame").encode())
+                    broadcast(server_socket,str("startgame").encode())
+                    bonbon=bonboncal(total_player)
                     break
                 elif choose == 'wait':
                     print ('wait for other players....')
+                    bonbon=bonboncal(total_player+1)
                     break
                 else:
                     print ('please enter again')
@@ -311,51 +319,38 @@ while 1:
                     PLAYER_POINT = add_card(PLAYER_IN_GAME,num,card_list,card_point,PLAYER_POINT)
                     PLAYER_CARD = show_card(PLAYER_IN_GAME,card_show,"fake")
                     PLAYER_STATUS = status(PLAYER_POINT)
-                    print(str('------------------------------------------------'))
+                    print(bonboncal(total_player+1))
                     playerdealerDisplay(player_num , total_player)
-                    broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-                    sleep(1)
-                    broadcast(server_socket,server_socket,str("printplayerdeal").encode())
+                    broadcast(server_socket,(bonboncal(total_player+1)).encode())
+                    broadcast(server_socket,str("printplayerdeal").encode())
                     data = str(printlist (PLAYER_CARD))
                     print(data)
-                    sleep(1)
-                    broadcast(server_socket,server_socket,data.encode())
+                    broadcast(server_socket,data.encode())
                     data = printlist (PLAYER_STATUS)
                     print(data)
-                    sleep(1)
-                    broadcast(server_socket,server_socket,data.encode())
+                    broadcast(server_socket,data.encode())
                     if PLAYER_POINT[num] < 21:
-                        sleep(1)
-                        broadcast(server_socket,server_socket,str("deal").encode())
-                        sleep(1)
-                        broadcast(server_socket,server_socket,str(num).encode())
+                        broadcast(server_socket,str("deal").encode())
+                        broadcast(server_socket,str(num).encode())
                     else:
-                        sleep(1)
-                        broadcast(server_socket,server_socket,str("deal").encode())
-                        sleep(1)
-                        broadcast(server_socket,server_socket,str(num+1).encode())
+                        broadcast(server_socket,str("deal").encode())
+                        broadcast(server_socket,str(num+1).encode())
                         num+=1
                 else:
-                    print(str('------------------------------------------------'))
-                    broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-                    sleep(1)
-                    broadcast(server_socket,server_socket,str("printplayerdeal").encode())
+                    print(str(bonboncal(total_player+1)))
+                    broadcast(server_socket,(str(bonboncal(total_player+1))).encode())
+                    broadcast(server_socket,str("printplayerdeal").encode())
                     data = str(printlist (PLAYER_CARD))
                     print(data)
-                    broadcast(server_socket,server_socket,data.encode())
+                    broadcast(server_socket,data.encode())
                     data = printlist (PLAYER_STATUS)
                     print(data)
-                    broadcast(server_socket,server_socket,data.encode())
-                    sleep(1)
-                    broadcast(server_socket,server_socket,str("deal").encode())
-                    sleep(1)
-                    broadcast(server_socket,server_socket,str(num+1).encode())
+                    broadcast(server_socket,data.encode())
+                    broadcast(server_socket,str("deal").encode())
+                    broadcast(server_socket,str(num+1).encode())
                     num+=1
             if num == total_player+1:
                 game_start=5
-                    
-
-
     if game_start == 1 :
         CURRENTBET_LIST=initCURRENTBET_LIST(total_player)
         PLAYER_IN_GAME=[]
@@ -365,49 +360,40 @@ while 1:
         PLAYER_POINT = calculate(PLAYER_IN_GAME,card_point,"fake")#計算初始每人分數
         PLAYER_CARD = show_card(PLAYER_IN_GAME,card_show,"fake")#牌面
         PLAYER_STATUS = status(PLAYER_POINT)#分數狀態
-        print ('------------------------------------------------')
+        print (bonbon)
         playerDisplay( player_num , total_player )
-        sleep(1)
-        broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,str("printplayer").encode())
-        sleep(1)
+        broadcast(server_socket,(str(bonbon)).encode())
+        broadcast(server_socket,str("printplayer").encode())
         data = printlist (PLAYER_BET)
         print(data)
-        sleep(1)
-        broadcast(server_socket,server_socket,data.encode())
-        print ('------------------------------------------------')
+        broadcast(server_socket,data.encode())
+        print (bonbon)
         print("Round "+str(game_round)+":")
         print("Current bet")
         print ('This round bet(>=10)?')
         CURRENTBET_LIST[0] = int(input())
-        print ('------------------------------------------------')
-        broadcast(server_socket,server_socket,str("initbet").encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,("Round "+str(game_round)+":").encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,str("Current bet").encode())
-        sleep(1)
-        print ('------------------------------------------------')
+        print (bonbon)
+        broadcast(server_socket,str("initbet").encode())
+        broadcast(server_socket,(str(bonbon)).encode())
+        broadcast(server_socket,("Round "+str(game_round)+":").encode())
+        broadcast(server_socket,str("Current bet").encode())
+        print (bonbon)
         playerDisplay( player_num , total_player )
         data = printlist (PLAYER_BET)
         print(data)
-        broadcast(server_socket,server_socket,data.encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,str("getbet").encode())
+        broadcast(server_socket,data.encode())
+        broadcast(server_socket,str("getbet").encode())
         game_start=2
     if game_start == 3 :
-        print ('------------------------------------------------')
-        broadcast(server_socket,server_socket,str("printplayerdeal").encode())
+        print (bonboncal(total_player+1))
+        broadcast(server_socket,str("printplayerdeal").encode())
         playerdealerDisplay( player_num , total_player )
         data = str(printlist (PLAYER_CARD))
         print(data)
-        broadcast(server_socket,server_socket,data.encode())
+        broadcast(server_socket,data.encode())
         data = printlist (PLAYER_STATUS)
         print(data)
-        broadcast(server_socket,server_socket,data.encode())
+        broadcast(server_socket,data.encode())
         askadd = "Player" + str(1) + ",Deal([y]/[n])?"
         while 1:
             yes = str(input(askadd))
@@ -415,102 +401,59 @@ while 1:
                 PLAYER_POINT = add_card(PLAYER_IN_GAME,1,card_list,card_point,PLAYER_POINT)
                 PLAYER_CARD = show_card(PLAYER_IN_GAME,card_show,"fake")
                 PLAYER_STATUS = status(PLAYER_POINT)
-                print(str('------------------------------------------------'))
-                broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-                sleep(1)
-                broadcast(server_socket,server_socket,str("printplayerdeal").encode())
+                print(str(bonboncal(total_player+1)))
+                broadcast(server_socket,(str(bonboncal(total_player+1))).encode())
+                broadcast(server_socket,str("printplayerdeal").encode())
                 playerdealerDisplay( player_num , total_player)
                 data = str(printlist (PLAYER_CARD))
                 print(data)
-                broadcast(server_socket,server_socket,data.encode())
+                broadcast(server_socket,data.encode())
                 data = printlist (PLAYER_STATUS)
                 print(data)
-                broadcast(server_socket,server_socket,data.encode())
+                broadcast(server_socket,data.encode())
                 if PLAYER_POINT[1] >= 21:
                     break;
             else:
-                print(str('------------------------------------------------'))
+                print(str(bonboncal(total_player+1)))
                 playerdealerDisplay(player_num , total_player)
-                broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-                sleep(1)
-                broadcast(server_socket,server_socket,str("printplayerdeal").encode())
+                broadcast(server_socket,(str(bonboncal(total_player+1))).encode())
+                broadcast(server_socket,str("printplayerdeal").encode())
                 data = str(printlist (PLAYER_CARD))
                 print(data)
-                sleep(1)
-                broadcast(server_socket,server_socket,data.encode())
+                broadcast(server_socket,data.encode())
                 data = printlist (PLAYER_STATUS)
                 print(data)
-                sleep(1)
-                broadcast(server_socket,server_socket,data.encode())
+                broadcast(server_socket,data.encode())
                 break;
-        sleep(1)
-        broadcast(server_socket,server_socket,str("deal").encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,str("2").encode())
+        
+        broadcast(server_socket,str("deal").encode())
+        broadcast(server_socket,str("2").encode())
         game_start = 4
     if game_start==5:
         PLAYER_POINT = calculate(PLAYER_IN_GAME,card_point,"true")
         PLAYER_CARD = show_card(PLAYER_IN_GAME,card_show,"true")
-        WIN_OR_NOT = wincheck(PLAYER_POINT)  
-
+        WIN_OR_NOT = wincheck(PLAYER_POINT) 
         dealer_add_card(WIN_OR_NOT,PLAYER_IN_GAME,card_list,card_point,PLAYER_POINT)#自動加牌
-
         PLAYER_POINT = calculate(PLAYER_IN_GAME,card_point,"true")
         PLAYER_CARD = show_card(PLAYER_IN_GAME,card_show,"true")
         WIN_OR_NOT = wincheck(PLAYER_POINT)  
-        print(str('------------------------------------------------'))
+        print(str(bonboncal(total_player+1)))
         playerdealerDisplay(player_num , total_player)
-        broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,str("printplayerdeal").encode())
+        broadcast(server_socket,(str(bonboncal(total_player+1))).encode())
+        broadcast(server_socket,str("printplayerdeal").encode())
         data = str(printlist (PLAYER_CARD))
         print(data)
-        broadcast(server_socket,server_socket,data.encode())
+        broadcast(server_socket,data.encode())
         PLAYER_STATUS = status(PLAYER_POINT)
         data = printlist (PLAYER_STATUS)
         print(data)
-        sleep(1)
-        broadcast(server_socket,server_socket,data.encode())  
-
+        broadcast(server_socket,data.encode()) 
         PLAYER_BET = count_bet(WIN_OR_NOT,PLAYER_BET,CURRENTBET_LIST)#計算BET結果
-
-        print(str('------------------------------------------------'))
+        print(str(bonboncal(total_player+1)))
         playerDisplay(player_num , total_player)
-        broadcast(server_socket,server_socket,(str('------------------------------------------------')).encode())
-        sleep(1)
-        broadcast(server_socket,server_socket,str("printplayer").encode())
+        broadcast(server_socket,(str(bonboncal(total_player+1))).encode())
+        broadcast(server_socket,str("printplayer").encode())
         data = str(printlist (WIN_OR_NOT))
         print(data)
-        sleep(1)
-        broadcast(server_socket,server_socket,data.encode())
-
+        broadcast(server_socket,data.encode())
         game_start=1
-   
-
-
-'''
-
-initialize(PLAYER_IN_GAME,PLAYER_NUM,PLAYER_BET,card_list,CURRENTBET_LIST)#初始
-PLAYER_POINT = calculate(PLAYER_IN_GAME,card_point,"fake")#計算初始每人分數
-PLAYER_CARD = show_card(PLAYER_IN_GAME,card_show,"fake")#牌面
-PLAYER_STATUS = status(PLAYER_POINT)#分數狀態
-
-
-        else:
-            try:
-                data = sock.recv(RECV_BUFFER)
-                if data:
-                        # there is something in the socket
-                        broadcast(server_socket, sock, "\r" + '[' + str(sock.getpeername()) + '] ' + data) 
-                else:
-                        # remove the socket that's broken    
-                        if sock in SOCKET_LIST:
-                            SOCKET_LIST.remove(sock)
-
-                        # at this stage, no data means probably the connection has been broken
-                        broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr) 
-            except:
-                broadcast(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
-                continue
-    server_socket.close()
-'''
